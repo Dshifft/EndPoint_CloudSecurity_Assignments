@@ -21,6 +21,12 @@ class FakeDB:
         self.admins[email].pop("mfa_code_hash", None)
         self.admins[email].pop("mfa_code_expires_at", None)
 
+    def remove_admin(self, email: str) -> None:
+        """Remove an administrator from the temporary database."""
+        if email not in self.admins:
+            raise ValueError("Admin not found.")
+        del self.admins[email]
+
     def add_user(self, user_data: dict) -> None:
         self.users[user_data["email"]] = user_data
 

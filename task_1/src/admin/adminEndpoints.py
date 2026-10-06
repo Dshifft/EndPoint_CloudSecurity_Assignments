@@ -12,12 +12,13 @@ from src.admin.adminSchema import (
     AdminMFAResponse,
     AdminRegData,
     AdminRegResponse,
+    AdminValidateResponse,
 )
 from utils.constants import Endpoints
 from utils.data_types import AdminJWTPayload
 from utils.db import FakeDB, get_db
 from utils.email_service import send_mfa_email
-from utils.security import generate_admin_jwt, hash_password, verify_password
+from utils.security import generate_admin_jwt, hash_password, validate_admin_jwt_token, verify_password
 
 
 settings = Settings()
@@ -82,3 +83,25 @@ def login_admin(admin_login_data: AdminLoginData, db: FakeDB = Depends(get_db)) 
     db.clear_admin_mfa(admin["email"])
     token = generate_admin_jwt(AdminJWTPayload(email=admin["email"]))
     return AdminLoginResponse(token=token)
+
+
+@admin_router.get(Endpoints.VALIDATE, response_model=AdminValidateResponse)
+def validate_admin(
+    admin_payload: AdminJWTPayload = Depends(validate_admin_jwt_token),
+    db: FakeDB = Depends(get_db),
+) -> AdminValidateResponse:
+    """Validate the token and confirm that its admin still exists."""
+    if not db.get_admin(admin_payload.email):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found.")
+    return AdminValidateResponse(admin_payload=admin_payload)
+
+
+@admin_router.delete(Endpoints.ROOT, status_code=status.HTTP_204_NO_CONTENT)
+def delete_admin(
+    admin_payload: AdminJWTPayload = Depends(validate_admin_jwt_token),
+    db: FakeDB = Depends(get_db),
+) -> None:
+    """Delete the authenticated administrator from the temporary database."""
+    if not db.get_admin(admin_payload.email):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found.")
+    db.remove_admin(admin_payload.email)

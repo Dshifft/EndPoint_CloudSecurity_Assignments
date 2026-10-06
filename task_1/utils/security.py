@@ -13,7 +13,7 @@ oauth2_schema = HTTPBearer()
 
 
 def hash_context() -> CryptContext:
-    """Use the same password-hash schemes as the reference project."""
+    """Create the password hashing context."""
     return CryptContext(schemes=["bcrypt", "sha256_crypt", "argon2"], deprecated="auto")
 
 
@@ -56,5 +56,20 @@ def validate_user_jwt_token(
             algorithms=[settings.JWT_ALGORITHM],
         )
         return UserJWTPayload(**payload_data)
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token.")
+
+
+def validate_admin_jwt_token(
+    header: HTTPAuthorizationCredentials = Depends(oauth2_schema),
+) -> AdminJWTPayload:
+    """Decode and validate the bearer token used by protected admin routes."""
+    try:
+        payload_data = jwt.decode(
+            header.credentials,
+            settings.ADMIN_JWT_SECRET,
+            algorithms=[settings.JWT_ALGORITHM],
+        )
+        return AdminJWTPayload(**payload_data)
     except (JWTError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token.")

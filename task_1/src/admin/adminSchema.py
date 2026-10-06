@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, SecretStr
 
+from utils.data_types import AdminJWTPayload
+
 
 class AdminRegData(BaseModel):
     """Data received when an administrator registers."""
@@ -37,3 +39,8 @@ class AdminLoginData(BaseModel):
 class AdminLoginResponse(BaseModel):
     message: str = "Admin logged in successfully."
     token: str
+
+
+class AdminValidateResponse(BaseModel):
+    message: str = "Admin token is valid."
+    admin_payload: AdminJWTPayload
