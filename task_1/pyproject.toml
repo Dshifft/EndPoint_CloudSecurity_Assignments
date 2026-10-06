@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "task-1-voting-authentication"
+version = "0.1.0"
+description = "Initial FastAPI structure for the voting system"
+authors = ["Dshifft"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.141.1"}
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
