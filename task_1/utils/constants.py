@@ -7,3 +7,4 @@ class Endpoints:
     REGISTER = "/register"
     LOGIN = "/login"
     VALIDATE = "/validate"
+    REQUEST_MFA = "/request-mfa"

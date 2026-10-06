@@ -11,6 +11,11 @@ class FakeDB:
     def get_admin(self, email: str) -> dict | None:
         return self.admins.get(email)
 
+    def save_admin_mfa(self, email: str, code_hash: str, expires_at) -> None:
+        """Store the hash and expiration of a temporary admin MFA code."""
+        self.admins[email]["mfa_code_hash"] = code_hash
+        self.admins[email]["mfa_code_expires_at"] = expires_at
+
     def add_user(self, user_data: dict) -> None:
         self.users[user_data["email"]] = user_data
 
