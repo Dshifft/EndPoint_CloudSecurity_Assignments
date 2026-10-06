@@ -6,22 +6,24 @@ The current phase implements user registration with the same initial idea shown 
 
 ## Run the project
 
-1. Open a Bash terminal in the `task_1` directory.
+1. Copy `.env.example` to `.env` and replace `USER_JWT_SECRET` with a long, local secret. The `.env` file is ignored by Git.
 
-2. Activate the course Conda environment:
+2. Open a Bash terminal in the `task_1` directory.
+
+3. Activate the course Conda environment:
 
    ```bash
    conda activate MC26
    ```
 
-3. Refresh the Poetry lock and install dependencies:
+4. Refresh the Poetry lock and install dependencies:
 
    ```bash
    poetry lock
    poetry install
    ```
 
-4. Start the FastAPI development server:
+5. Start the FastAPI development server:
 
    ```bash
    poetry run uvicorn main:voting_app --reload

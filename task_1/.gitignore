@@ -1,5 +1,5 @@
-.env
 __pycache__/
 *.py[cod]
 logs/*.log
 test_reports/
+roadmap.txt

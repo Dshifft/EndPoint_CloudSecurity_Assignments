@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.user.userSchema import UserRegData, UserRegResponse
+from src.user.userSchema import UserLoginData, UserLoginResponse, UserRegData, UserRegResponse
 from utils.constants import Endpoints
 from utils.db import FakeDB, get_db
-from utils.security import hash_password
+from utils.data_types import UserJWTPayload
+from utils.security import generate_user_jwt, hash_password, verify_password
 
 
 user_router = APIRouter(prefix=Endpoints.USER, tags=["user"])
@@ -25,3 +26,14 @@ def register_user(user_reg_data: UserRegData, db: FakeDB = Depends(get_db)) -> U
     db.add_user(user_data)
 
     return UserRegResponse(name=user_reg_data.name, email=user_reg_data.email)
+
+
+@user_router.post(Endpoints.LOGIN, response_model=UserLoginResponse)
+def login_user(user_login_data: UserLoginData, db: FakeDB = Depends(get_db)) -> UserLoginResponse:
+    """Verify user credentials and return a signed access token."""
+    user = db.get_user(str(user_login_data.email))
+    if not user or not verify_password(user_login_data.password, user["hashed_password"]):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
+
+    token = generate_user_jwt(UserJWTPayload(email=user["email"]))
+    return UserLoginResponse(token=token)
