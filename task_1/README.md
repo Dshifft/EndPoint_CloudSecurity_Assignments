@@ -1,8 +1,8 @@
 # Task 1 — Voting system
 
-This is the initial structure for the voting-system API. It follows the organisation of the classroom reference project: `main.py`, `utils/`, `src/admin/`, `src/user/` and `test/`.
+This FastAPI project follows the classroom reference structure: `main.py`, `utils/`, `src/admin/` and `src/user/`.
 
-At this stage the API only has its root route. Authentication, database, users, administrators and MFA will be added one at a time in later approved steps.
+The current phase implements user registration with the same initial idea shown in the professor's code: a temporary in-memory `FakeDB`. Data is lost whenever the API is restarted. PostgreSQL will replace this storage in a later phase.
 
 ## Run the project
 
@@ -14,9 +14,10 @@ At this stage the API only has its root route. Authentication, database, users, 
    conda activate MC26
    ```
 
-3. Install the dependencies managed by Poetry:
+3. Refresh the Poetry lock and install dependencies:
 
    ```bash
+   poetry lock
    poetry install
    ```
 
@@ -25,11 +26,3 @@ At this stage the API only has its root route. Authentication, database, users, 
    ```bash
    poetry run uvicorn main:voting_app --reload
    ```
-
-5. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/). The API must return:
-
-   ```json
-   {"message": "Welcome to the voting app!"}
-   ```
-
-6. Optional: open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to see the FastAPI documentation.
