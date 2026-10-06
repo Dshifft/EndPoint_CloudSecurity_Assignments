@@ -1,30 +1,42 @@
-# Task 1 — Voting system
+# Task 1 — Voting system authentication
 
-This FastAPI project follows the classroom reference structure: `main.py`, `utils/`, `src/admin/` and `src/user/`.
+FastAPI REST API for user and administrator authentication in a voting system. Voting functionality is not part of this task.
 
-The current phase implements user registration with the same initial idea shown in the professor's code: a temporary in-memory `FakeDB`. Data is lost whenever the API is restarted. PostgreSQL will replace this storage in a later phase.
+Implemented features:
+
+- User registration, login, token validation and account deletion.
+- Administrator registration, email MFA request, MFA login, token validation and account deletion.
+- JWT tokens for users and administrators.
+- Ethereal SMTP for administrator MFA emails.
 
 ## Run the project
 
-1. Copy `.env.example` to `.env` and replace `USER_JWT_SECRET` with a long, local secret. The `.env` file is ignored by Git.
+1. Open a Bash terminal in the `task_1` directory.
 
-2. Open a Bash terminal in the `task_1` directory.
-
-3. Activate the course Conda environment:
+2. Activate the course Conda environment:
 
    ```bash
    conda activate MC26
    ```
 
-4. Refresh the Poetry lock and install dependencies:
+3. Install the Poetry dependencies:
 
    ```bash
-   poetry lock
    poetry install
    ```
 
-5. Start the FastAPI development server:
+4. Start the FastAPI development server:
 
    ```bash
    poetry run uvicorn main:voting_app --reload
    ```
+
+5. Open the FastAPI documentation:
+
+   ```text
+   http://127.0.0.1:8000/docs
+   ```
+
+## Temporary storage
+
+The API currently uses `FakeDB`
