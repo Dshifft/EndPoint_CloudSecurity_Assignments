@@ -5,6 +5,12 @@ class FakeDB:
         self.admins = {}
         self.users = {}
 
+    def add_admin(self, admin_data: dict) -> None:
+        self.admins[admin_data["email"]] = admin_data
+
+    def get_admin(self, email: str) -> dict | None:
+        return self.admins.get(email)
+
     def add_user(self, user_data: dict) -> None:
         self.users[user_data["email"]] = user_data
 
