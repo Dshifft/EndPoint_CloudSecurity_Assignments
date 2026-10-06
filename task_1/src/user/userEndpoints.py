@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.user.userSchema import UserLoginData, UserLoginResponse, UserRegData, UserRegResponse
+from src.user.userSchema import (
+    UserLoginData,
+    UserLoginResponse,
+    UserRegData,
+    UserRegResponse,
+    UserValidateResponse,
+)
 from utils.constants import Endpoints
 from utils.db import FakeDB, get_db
 from utils.data_types import UserJWTPayload
-from utils.security import generate_user_jwt, hash_password, verify_password
+from utils.security import generate_user_jwt, hash_password, validate_user_jwt_token, verify_password
 
 
 user_router = APIRouter(prefix=Endpoints.USER, tags=["user"])
@@ -37,3 +43,25 @@ def login_user(user_login_data: UserLoginData, db: FakeDB = Depends(get_db)) -> 
 
     token = generate_user_jwt(UserJWTPayload(email=user["email"]))
     return UserLoginResponse(token=token)
+
+
+@user_router.get(Endpoints.VALIDATE, response_model=UserValidateResponse)
+def validate_user(
+    user_payload: UserJWTPayload = Depends(validate_user_jwt_token),
+    db: FakeDB = Depends(get_db),
+) -> UserValidateResponse:
+    """Validate the token and confirm that its user still exists."""
+    if not db.get_user(user_payload.email):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    return UserValidateResponse(user_payload=user_payload)
+
+
+@user_router.delete(Endpoints.ROOT, status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_payload: UserJWTPayload = Depends(validate_user_jwt_token),
+    db: FakeDB = Depends(get_db),
+) -> None:
+    """Delete the authenticated user from the temporary database."""
+    if not db.get_user(user_payload.email):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    db.remove_user(user_payload.email)

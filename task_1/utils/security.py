@@ -1,12 +1,15 @@
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import SecretStr
-from jose import jwt
 
 from config import Settings
 from utils.data_types import UserJWTPayload
 
 
 settings = Settings()
+oauth2_schema = HTTPBearer()
 
 
 def hash_context() -> CryptContext:
@@ -31,3 +34,18 @@ def generate_user_jwt(payload: UserJWTPayload) -> str:
         settings.USER_JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
+
+
+def validate_user_jwt_token(
+    header: HTTPAuthorizationCredentials = Depends(oauth2_schema),
+) -> UserJWTPayload:
+    """Decode and validate the bearer token used by protected user routes."""
+    try:
+        payload_data = jwt.decode(
+            header.credentials,
+            settings.USER_JWT_SECRET,
+            algorithms=[settings.JWT_ALGORITHM],
+        )
+        return UserJWTPayload(**payload_data)
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid JWT token.")
