@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from pydantic import SecretStr
 
 from config import Settings
-from utils.data_types import UserJWTPayload
+from utils.data_types import AdminJWTPayload, UserJWTPayload
 
 
 settings = Settings()
@@ -32,6 +32,15 @@ def generate_user_jwt(payload: UserJWTPayload) -> str:
     return jwt.encode(
         payload.model_dump(),
         settings.USER_JWT_SECRET,
+        algorithm=settings.JWT_ALGORITHM,
+    )
+
+
+def generate_admin_jwt(payload: AdminJWTPayload) -> str:
+    """Create a signed JWT after successful administrator MFA login."""
+    return jwt.encode(
+        payload.model_dump(),
+        settings.ADMIN_JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
 

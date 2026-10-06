@@ -24,3 +24,16 @@ class AdminMFARequestData(BaseModel):
 
 class AdminMFAResponse(BaseModel):
     message: str = "MFA code sent to the administrator email."
+
+
+class AdminLoginData(BaseModel):
+    """Credentials and MFA code required for administrator login."""
+
+    email: EmailStr
+    password: SecretStr
+    mfa_code: SecretStr
+
+
+class AdminLoginResponse(BaseModel):
+    message: str = "Admin logged in successfully."
+    token: str

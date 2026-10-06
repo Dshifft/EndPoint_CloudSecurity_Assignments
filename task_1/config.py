@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     USER_JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     USER_JWT_EXPIRE_DAYS: int = 1
+    ADMIN_JWT_SECRET: str
+    ADMIN_JWT_EXPIRE_DAYS: int = 1
     MFA_CODE_EXPIRE_MINUTES: int = 10
 
     SMTP_HOST: str

@@ -5,11 +5,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import SecretStr
 
 from config import Settings
-from src.admin.adminSchema import AdminMFARequestData, AdminMFAResponse, AdminRegData, AdminRegResponse
+from src.admin.adminSchema import (
+    AdminLoginData,
+    AdminLoginResponse,
+    AdminMFARequestData,
+    AdminMFAResponse,
+    AdminRegData,
+    AdminRegResponse,
+)
 from utils.constants import Endpoints
+from utils.data_types import AdminJWTPayload
 from utils.db import FakeDB, get_db
 from utils.email_service import send_mfa_email
-from utils.security import hash_password, verify_password
+from utils.security import generate_admin_jwt, hash_password, verify_password
 
 
 settings = Settings()
@@ -55,3 +63,22 @@ def request_mfa_code(mfa_request: AdminMFARequestData, db: FakeDB = Depends(get_
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Unable to send MFA email.")
 
     return AdminMFAResponse()
+
+
+@admin_router.post(Endpoints.LOGIN, response_model=AdminLoginResponse)
+def login_admin(admin_login_data: AdminLoginData, db: FakeDB = Depends(get_db)) -> AdminLoginResponse:
+    """Verify admin password and MFA code before issuing an access token."""
+    admin = db.get_admin(str(admin_login_data.email))
+    if not admin or not verify_password(admin_login_data.password, admin["hashed_password"]):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
+
+    code_hash = admin.get("mfa_code_hash")
+    expires_at = admin.get("mfa_code_expires_at")
+    if not code_hash or not expires_at or expires_at <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="MFA code is missing or expired.")
+    if not verify_password(admin_login_data.mfa_code, code_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid MFA code.")
+
+    db.clear_admin_mfa(admin["email"])
+    token = generate_admin_jwt(AdminJWTPayload(email=admin["email"]))
+    return AdminLoginResponse(token=token)

@@ -16,6 +16,11 @@ class FakeDB:
         self.admins[email]["mfa_code_hash"] = code_hash
         self.admins[email]["mfa_code_expires_at"] = expires_at
 
+    def clear_admin_mfa(self, email: str) -> None:
+        """Remove an MFA code after it has been used successfully."""
+        self.admins[email].pop("mfa_code_hash", None)
+        self.admins[email].pop("mfa_code_expires_at", None)
+
     def add_user(self, user_data: dict) -> None:
         self.users[user_data["email"]] = user_data
 
