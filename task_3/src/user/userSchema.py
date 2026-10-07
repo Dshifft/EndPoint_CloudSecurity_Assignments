@@ -32,3 +32,16 @@ class UserLoginResponse(BaseModel):
 class UserValidateResponse(BaseModel):
     message: str = "User token is valid."
     user_payload: UserJWTPayload
+
+
+class VoteData(BaseModel):
+    """Candidate selected by an authenticated user."""
+
+    candidate_id: int
+
+
+class VoteRegResponse(BaseModel):
+    message: str = "Vote registered successfully."
+    vote_id: int
+    user_id: int
+    candidate_id: int

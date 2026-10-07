@@ -36,3 +36,13 @@ class Candidate(Base):
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     admin_id = Column(Integer, ForeignKey("admins.admin_id", ondelete="SET NULL"), nullable=True)
+
+
+class Vote(Base):
+    """Database model for votes cast by users."""
+
+    __tablename__ = "votes"
+
+    vote_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), unique=True, nullable=False)
+    candidate_id = Column(Integer, ForeignKey("candidates.candidate_id"), nullable=False)

@@ -8,11 +8,13 @@ from src.user.userSchema import (
     UserRegData,
     UserRegResponse,
     UserValidateResponse,
+    VoteData,
+    VoteRegResponse,
 )
 from utils.constants import Endpoints
 from utils.data_types import UserJWTPayload
 from utils.db import get_db
-from utils.db_model import User
+from utils.db_model import Candidate, User, Vote
 from utils.logger import get_logger
 from utils.security import generate_user_jwt, hash_password, validate_user_jwt_token, verify_password
 
@@ -89,3 +91,38 @@ def delete_user(
         logger.exception("Unable to delete user.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
     logger.info("User account deleted.")
+
+
+@user_router.post(Endpoints.VOTE, status_code=status.HTTP_201_CREATED, response_model=VoteRegResponse)
+def register_vote(
+    vote_data: VoteData,
+    user_payload: UserJWTPayload = Depends(validate_user_jwt_token),
+    db: Session = Depends(get_db),
+) -> VoteRegResponse:
+    """Register the authenticated user's vote for a candidate."""
+    user = db.query(User).filter(User.email == user_payload.email).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    existing_vote = db.query(Vote).filter(Vote.user_id == user.user_id).first()
+    if existing_vote:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User has already voted.")
+
+    candidate = db.query(Candidate).filter(Candidate.candidate_id == vote_data.candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Candidate not found.")
+
+    vote = Vote(user_id=user.user_id, candidate_id=candidate.candidate_id)
+    db.add(vote)
+    try:
+        db.commit()
+        db.refresh(vote)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User has already voted.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to register vote.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+    logger.info("User vote registered.")
+    return VoteRegResponse(vote_id=vote.vote_id, user_id=vote.user_id, candidate_id=vote.candidate_id)

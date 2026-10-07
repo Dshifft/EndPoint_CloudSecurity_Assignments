@@ -3,8 +3,9 @@ from fastapi import FastAPI
 from utils.logger import get_logger
 from src.admin.adminEndpoints import admin_router
 from src.user.userEndpoints import user_router
+from src.vote.voteEndpoints import vote_router
 from utils.db import Base, Engine
-from utils.db_model import Admin, Candidate, User
+from utils.db_model import Admin, Candidate, User, Vote
 from utils.constants import Endpoints
 
 
@@ -17,6 +18,7 @@ voting_app = FastAPI(
 
 voting_app.include_router(user_router)
 voting_app.include_router(admin_router)
+voting_app.include_router(vote_router)
 
 
 @voting_app.on_event("startup")

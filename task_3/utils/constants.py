@@ -9,3 +9,5 @@ class Endpoints:
     VALIDATE = "/validate"
     REQUEST_MFA = "/request-mfa"
     CANDIDATE = "/candidate"
+    VOTE = "/vote"
+    VOTES = "/votes"
