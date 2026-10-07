@@ -1,0 +1,9 @@
+.git
+.env
+.venv
+__pycache__
+*.py[cod]
+logs
+test_reports
+task_2.txt
+HOJA_DE_RUTA.md
