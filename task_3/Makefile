@@ -16,4 +16,4 @@ restart: down up
 
 reset-data:
 	docker compose down -v
-	docker compose up
+	docker compose up -d
