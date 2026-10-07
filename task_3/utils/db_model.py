@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 
 from utils.db import Base
 
@@ -25,3 +25,14 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+
+
+class Candidate(Base):
+    """Database model for voting candidates."""
+
+    __tablename__ = "candidates"
+
+    candidate_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    admin_id = Column(Integer, ForeignKey("admins.admin_id", ondelete="SET NULL"), nullable=True)

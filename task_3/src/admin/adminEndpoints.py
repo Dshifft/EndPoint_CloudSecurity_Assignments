@@ -15,11 +15,14 @@ from src.admin.adminSchema import (
     AdminRegData,
     AdminRegResponse,
     AdminValidateResponse,
+    CandidateRegData,
+    CandidateRegResponse,
+    CandidateResponse,
 )
 from utils.constants import Endpoints
 from utils.data_types import AdminJWTPayload
 from utils.db import get_db
-from utils.db_model import Admin
+from utils.db_model import Admin, Candidate
 from utils.email_service import send_mfa_email
 from utils.logger import get_logger
 from utils.security import generate_admin_jwt, hash_password, validate_admin_jwt_token, verify_password
@@ -140,3 +143,50 @@ def delete_admin(
         logger.exception("Unable to delete administrator.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
     logger.info("Administrator account deleted.")
+
+
+@admin_router.post(Endpoints.CANDIDATE, status_code=status.HTTP_201_CREATED, response_model=CandidateRegResponse)
+def register_candidate(
+    candidate_reg_data: CandidateRegData,
+    admin_payload: AdminJWTPayload = Depends(validate_admin_jwt_token),
+    db: Session = Depends(get_db),
+) -> CandidateRegResponse:
+    """Register a candidate for the authenticated administrator."""
+    admin = db.query(Admin).filter(Admin.email == admin_payload.email).first()
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found.")
+
+    candidate = Candidate(
+        name=candidate_reg_data.name,
+        email=str(candidate_reg_data.email),
+        admin_id=admin.admin_id,
+    )
+    db.add(candidate)
+    try:
+        db.commit()
+        db.refresh(candidate)
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to register candidate.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+    logger.info("Candidate registered.")
+    return CandidateRegResponse(
+        candidate_id=candidate.candidate_id,
+        name=candidate.name,
+        email=candidate.email,
+    )
+
+
+@admin_router.get(Endpoints.CANDIDATE, response_model=list[CandidateResponse])
+def get_candidates(db: Session = Depends(get_db)) -> list[CandidateResponse]:
+    """Return the public list of registered candidates."""
+    candidates = db.query(Candidate).all()
+    return [
+        CandidateResponse(
+            candidate_id=candidate.candidate_id,
+            name=candidate.name,
+            email=candidate.email,
+            admin_id=candidate.admin_id,
+        )
+        for candidate in candidates
+    ]

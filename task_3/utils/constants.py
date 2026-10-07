@@ -8,3 +8,4 @@ class Endpoints:
     LOGIN = "/login"
     VALIDATE = "/validate"
     REQUEST_MFA = "/request-mfa"
+    CANDIDATE = "/candidate"

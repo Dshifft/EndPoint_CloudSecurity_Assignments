@@ -4,7 +4,7 @@ from utils.logger import get_logger
 from src.admin.adminEndpoints import admin_router
 from src.user.userEndpoints import user_router
 from utils.db import Base, Engine
-from utils.db_model import Admin, User
+from utils.db_model import Admin, Candidate, User
 from utils.constants import Endpoints
 
 

@@ -44,3 +44,26 @@ class AdminLoginResponse(BaseModel):
 class AdminValidateResponse(BaseModel):
     message: str = "Admin token is valid."
     admin_payload: AdminJWTPayload
+
+
+class CandidateRegData(BaseModel):
+    """Data received when an administrator registers a candidate."""
+
+    name: str
+    email: EmailStr
+
+
+class CandidateRegResponse(BaseModel):
+    message: str = "Candidate registered successfully."
+    candidate_id: int
+    name: str
+    email: EmailStr
+
+
+class CandidateResponse(BaseModel):
+    """Public information stored for a candidate."""
+
+    candidate_id: int
+    name: str
+    email: EmailStr
+    admin_id: int | None
