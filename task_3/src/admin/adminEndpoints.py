@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import SecretStr
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from config import Settings
 from src.admin.adminSchema import (
@@ -16,7 +18,8 @@ from src.admin.adminSchema import (
 )
 from utils.constants import Endpoints
 from utils.data_types import AdminJWTPayload
-from utils.db import FakeDB, get_db
+from utils.db import get_db
+from utils.db_model import Admin
 from utils.email_service import send_mfa_email
 from utils.logger import get_logger
 from utils.security import generate_admin_jwt, hash_password, validate_admin_jwt_token, verify_password
@@ -27,42 +30,51 @@ logger = get_logger(__name__)
 admin_router = APIRouter(prefix=Endpoints.ADMIN, tags=["admin"])
 
 
-@admin_router.post(
-    Endpoints.REGISTER,
-    status_code=status.HTTP_201_CREATED,
-    response_model=AdminRegResponse,
-)
-def register_admin(admin_reg_data: AdminRegData, db: FakeDB = Depends(get_db)) -> AdminRegResponse:
+@admin_router.post(Endpoints.REGISTER, status_code=status.HTTP_201_CREATED, response_model=AdminRegResponse)
+def register_admin(admin_reg_data: AdminRegData, db: Session = Depends(get_db)) -> AdminRegResponse:
     """Register an administrator and store only a hash of the password."""
-    if db.get_admin(str(admin_reg_data.email)):
+    existing_admin = db.query(Admin).filter(Admin.email == str(admin_reg_data.email)).first()
+    if existing_admin:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Admin with this email already exists.")
 
-    admin_data = admin_reg_data.model_dump(exclude={"password"})
-    admin_data["email"] = str(admin_reg_data.email)
-    admin_data["hashed_password"] = hash_password(admin_reg_data.password)
-    db.add_admin(admin_data)
+    admin = Admin(
+        name=admin_reg_data.name,
+        email=str(admin_reg_data.email),
+        hashed_password=hash_password(admin_reg_data.password),
+    )
+    db.add(admin)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Admin with this email already exists.")
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to register administrator.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
     logger.info("Administrator registered.")
-
     return AdminRegResponse(name=admin_reg_data.name, email=admin_reg_data.email)
 
 
 @admin_router.post(Endpoints.REQUEST_MFA, response_model=AdminMFAResponse)
-def request_mfa_code(mfa_request: AdminMFARequestData, db: FakeDB = Depends(get_db)) -> AdminMFAResponse:
-    """Verify admin credentials and send a one-time MFA code by email."""
-    admin = db.get_admin(str(mfa_request.email))
-    if not admin or not verify_password(mfa_request.password, admin["hashed_password"]):
+def request_mfa_code(mfa_request: AdminMFARequestData, db: Session = Depends(get_db)) -> AdminMFAResponse:
+    """Verify administrator credentials and send a one-time MFA code."""
+    admin = db.query(Admin).filter(Admin.email == str(mfa_request.email)).first()
+    if not admin or not verify_password(mfa_request.password, admin.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
 
     mfa_code = f"{secrets.randbelow(1_000_000):06d}"
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.MFA_CODE_EXPIRE_MINUTES)
-    db.save_admin_mfa(
-        admin["email"],
-        hash_password(SecretStr(mfa_code)),
-        expires_at,
-    )
+    admin.mfa_code_hash = hash_password(SecretStr(mfa_code))
+    admin.mfa_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.MFA_CODE_EXPIRE_MINUTES)
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to save administrator MFA code.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
     try:
-        send_mfa_email(admin["email"], mfa_code)
+        send_mfa_email(admin.email, mfa_code)
     except Exception:
         logger.error("Unable to send MFA email.")
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Unable to send MFA email.")
@@ -72,32 +84,40 @@ def request_mfa_code(mfa_request: AdminMFARequestData, db: FakeDB = Depends(get_
 
 
 @admin_router.post(Endpoints.LOGIN, response_model=AdminLoginResponse)
-def login_admin(admin_login_data: AdminLoginData, db: FakeDB = Depends(get_db)) -> AdminLoginResponse:
-    """Verify admin password and MFA code before issuing an access token."""
-    admin = db.get_admin(str(admin_login_data.email))
-    if not admin or not verify_password(admin_login_data.password, admin["hashed_password"]):
+def login_admin(admin_login_data: AdminLoginData, db: Session = Depends(get_db)) -> AdminLoginResponse:
+    """Verify administrator password and MFA code before issuing a token."""
+    admin = db.query(Admin).filter(Admin.email == str(admin_login_data.email)).first()
+    if not admin or not verify_password(admin_login_data.password, admin.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
 
-    code_hash = admin.get("mfa_code_hash")
-    expires_at = admin.get("mfa_code_expires_at")
-    if not code_hash or not expires_at or expires_at <= datetime.now(timezone.utc):
+    if not admin.mfa_code_hash or not admin.mfa_code_expires_at:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="MFA code is missing or expired.")
-    if not verify_password(admin_login_data.mfa_code, code_hash):
+    if admin.mfa_code_expires_at <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="MFA code is missing or expired.")
+    if not verify_password(admin_login_data.mfa_code, admin.mfa_code_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid MFA code.")
 
-    db.clear_admin_mfa(admin["email"])
-    token = generate_admin_jwt(AdminJWTPayload(email=admin["email"]))
+    admin.mfa_code_hash = None
+    admin.mfa_code_expires_at = None
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to consume administrator MFA code.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
     logger.info("Administrator logged in with MFA.")
-    return AdminLoginResponse(token=token)
+    return AdminLoginResponse(token=generate_admin_jwt(AdminJWTPayload(email=admin.email)))
 
 
-@admin_router.get(Endpoints.VALIDATE, response_model=AdminValidateResponse)
-def validate_admin(
+@admin_router.get(Endpoints.ROOT, response_model=AdminValidateResponse)
+@admin_router.get(Endpoints.VALIDATE, response_model=AdminValidateResponse, include_in_schema=False)
+def get_admin(
     admin_payload: AdminJWTPayload = Depends(validate_admin_jwt_token),
-    db: FakeDB = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> AdminValidateResponse:
-    """Validate the token and confirm that its admin still exists."""
-    if not db.get_admin(admin_payload.email):
+    """Return the authenticated administrator."""
+    admin = db.query(Admin).filter(Admin.email == admin_payload.email).first()
+    if not admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found.")
     logger.info("Administrator token validated.")
     return AdminValidateResponse(admin_payload=admin_payload)
@@ -106,10 +126,17 @@ def validate_admin(
 @admin_router.delete(Endpoints.ROOT, status_code=status.HTTP_204_NO_CONTENT)
 def delete_admin(
     admin_payload: AdminJWTPayload = Depends(validate_admin_jwt_token),
-    db: FakeDB = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> None:
-    """Delete the authenticated administrator from the temporary database."""
-    if not db.get_admin(admin_payload.email):
+    """Delete the authenticated administrator from PostgreSQL."""
+    admin = db.query(Admin).filter(Admin.email == admin_payload.email).first()
+    if not admin:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Admin not found.")
-    db.remove_admin(admin_payload.email)
+    db.delete(admin)
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception("Unable to delete administrator.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
     logger.info("Administrator account deleted.")

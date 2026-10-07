@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from utils.logger import get_logger
 from src.admin.adminEndpoints import admin_router
 from src.user.userEndpoints import user_router
+from utils.db import Base, Engine
+from utils.db_model import Admin, User
 from utils.constants import Endpoints
 
 
@@ -19,7 +21,8 @@ voting_app.include_router(admin_router)
 
 @voting_app.on_event("startup")
 def log_application_startup() -> None:
-    """Record that the API is ready to receive requests."""
+    """Create database tables and record that the API is ready."""
+    Base.metadata.create_all(bind=Engine)
     logger.info("Voting API started.")
 
 

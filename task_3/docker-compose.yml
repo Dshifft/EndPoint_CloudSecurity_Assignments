@@ -10,7 +10,7 @@ services:
       - .env
     volumes:
       - ./:/app
-      - voting_app_logs:/logs
+      - voting_app_logs:/app/logs
     command: uvicorn main:voting_app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       - voting_db

@@ -10,16 +10,16 @@ Implemented features:
 - JWT tokens for users and administrators.
 - File logging at `logs/logs.log` with a minimum level of `INFO`.
 - Docker and Docker Compose configuration.
-- PostgreSQL service prepared for the SQLAlchemy migration in the next phase.
+- PostgreSQL persistence implemented with SQLAlchemy.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and replace its placeholder values before
-starting the application. The `.env` file is intentionally excluded from Git.
+Configure `.env` with the application, SMTP and PostgreSQL settings before
+starting the application.
 
 ## How to run the app
 
-Run these commands from the `task_2` directory.
+Run these commands from the `task_3` directory.
 
 Build the image:
 
@@ -47,6 +47,5 @@ container logs or `make restart` to recreate the service.
 
 The API is available at `http://127.0.0.1:8000` and its interactive
 documentation is available at `http://127.0.0.1:8000/docs`. Application events
-are written to `logs/logs.log` on the host machine. PostgreSQL is available at
-`localhost:5433` and its data is stored in the `voting_app_db_data` Docker
-volume.
+are stored in the `voting_app_logs` Docker volume. PostgreSQL is available at
+`localhost:5433` and its data is stored in the `voting_app_db_data` Docker volume.
