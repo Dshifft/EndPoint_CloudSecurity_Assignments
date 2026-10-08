@@ -1,0 +1,780 @@
+{
+  "info": {
+    "_postman_id": "4dc6328e-49bd-4eb8-9954-e3fd7a626581",
+    "name": "EndPoint_CloudSec_task_4",
+    "description": "Import the paired environment. Run the MFA setup folder manually, paste the received code into admin_mfa_code, then run the Runner folder.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58761735",
+    "_collection_link": "https://go.postman.co/collection/58761735-4dc6328e-49bd-4eb8-9954-e3fd7a626581?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "0_admin_MFA",
+      "item": [
+        {
+          "name": "Initialize run data and check API",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = pm.variables.replaceIn('{{$randomUUID}}').replace(/-/g, '').slice(0, 12);\npm.environment.set('admin_name', `Admin ${suffix}`);\npm.environment.set('admin_email', `ransom89@ethereal.email`);\npm.environment.set('admin_password', 'Password123!');\npm.environment.set('candidate_name', `Candidate ${suffix}`);\npm.environment.set('candidate_email', `candidate_${suffix}@example.com`);\npm.environment.set('user_name', `Voter ${suffix}`);\npm.environment.set('user_email', `voter_${suffix}@example.com`);\npm.environment.set('user_password', 'Password123!');\npm.environment.set('cleanup_user_name', `Cleanup ${suffix}`);\npm.environment.set('cleanup_user_email', `cleanup_${suffix}@example.com`);\npm.environment.set('cleanup_user_password', 'Password123!');\npm.environment.unset('admin_token');\npm.environment.unset('user_token');\npm.environment.unset('cleanup_user_token');\npm.environment.unset('candidate_id');\npm.environment.unset('vote_id');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));\npm.test('Welcome message is returned', () => pm.expect(pm.response.json().message).to.eql('Welcome to the voting app!'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Registered email matches environment', () => pm.expect(pm.response.json().email).to.eql(pm.environment.get('admin_email')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{admin_name}}\",\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request MFA code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('MFA confirmation is returned', () => pm.expect(pm.response.json().message).to.include('MFA code sent'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/request-mfa",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "request-mfa"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Run these requests in order. After Request MFA, paste the emailed code in the selected environment variable admin_mfa_code. Do not run this folder with the Runner."
+    },
+    {
+      "name": "1_automatic_tests",
+      "item": [
+        {
+          "name": "Login admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Admin token is returned', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('admin_token', body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\",\n  \"mfa_code\": \"{{admin_mfa_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Validated admin email matches', () => pm.expect(pm.response.json().admin_payload.email).to.eql(pm.environment.get('admin_email')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate admin alias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register candidate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));\n\nconst body = pm.response.json();\n\npm.test('Candidate ID is returned', () => {\n    pm.expect(body.candidate_id).to.be.a('number');\n});\n\npm.environment.set('candidate_id', body.candidate_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{candidate_name}}\",\n  \"email\": \"{{candidate_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/candidate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "candidate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View candidates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Created candidate is listed', () => pm.expect(pm.response.json().some(candidate => candidate.candidate_id === Number(pm.environment.get('candidate_id')))).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/candidate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "candidate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register voting user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{user_name}}\",\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login voting user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('User token is returned', () => pm.expect(body.token).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('user_token', body.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate voting user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Validated user email matches', () => pm.expect(pm.response.json().user_payload.email).to.eql(pm.environment.get('user_email')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate voting user alias",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vote candidate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));\n\nconst body = pm.response.json();\n\npm.test('Vote uses selected candidate', () => {\n    pm.expect(body.candidate_id).to.eql(\n        Number(pm.environment.get('candidate_id'))\n    );\n});\n\npm.environment.set('vote_id', body.vote_id);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const candidateId = pm.environment.get('candidate_id');\r\n\r\nif (!candidateId) {\r\n    throw new Error('candidate_id is missing. Run Register candidate first.');\r\n}\r\n\r\npm.request.body.update(JSON.stringify({\r\n    candidate_id: Number(candidateId)\r\n}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidate_id\": {{candidate_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user/vote",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "vote"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View votes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Created vote is listed', () => pm.expect(pm.response.json().some(vote => vote.vote_id === Number(pm.environment.get('vote_id')))).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/votes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "votes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register cleanup user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{cleanup_user_name}}\",\n  \"email\": \"{{cleanup_user_email}}\",\n  \"password\": \"{{cleanup_user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login cleanup user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('cleanup_user_token', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{cleanup_user_email}}\",\n  \"password\": \"{{cleanup_user_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete cleanup user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{cleanup_user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/user/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
