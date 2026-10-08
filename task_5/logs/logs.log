@@ -1,0 +1,100 @@
+2026-10-07 14:18:48,638 | INFO | voting_app.verification | Logging configuration verification.
+2026-10-07 12:20:20,455 | INFO | voting_app.main | Voting API started.
+2026-10-07 12:20:22,324 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 12:32:38,303 | INFO | voting_app.main | Voting API started.
+2026-10-07 12:33:42,769 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 12:33:47,105 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 12:34:07,934 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 12:34:14,251 | INFO | voting_app.src.user.userEndpoints | User account deleted.
+2026-10-07 12:38:28,633 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 12:38:39,928 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 12:39:21,930 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 12:40:56,476 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 12:42:05,029 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 12:42:21,547 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 12:44:51,301 | INFO | voting_app.main | Voting API started.
+2026-10-07 12:44:57,850 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 12:45:03,199 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 12:45:31,184 | INFO | voting_app.src.admin.adminEndpoints | Administrator logged in with MFA.
+2026-10-07 12:45:39,844 | INFO | voting_app.src.admin.adminEndpoints | Administrator token validated.
+2026-10-07 12:45:51,175 | INFO | voting_app.src.admin.adminEndpoints | Administrator account deleted.
+2026-10-07 12:57:19,988 | INFO | voting_app.main | Voting API started.
+2026-10-07 14:59:24,068 | INFO | voting_app.main | Voting API started.
+2026-10-07 14:59:38,986 | INFO | voting_app.main | Voting API started.
+2026-10-07 14:59:50,793 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 15:05:07,400 | INFO | voting_app.main | Voting API started.
+2026-10-07 15:05:56,050 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 15:14:11,176 | INFO | voting_app.main | Voting API started.
+2026-10-07 15:14:26,758 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 15:18:06,457 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 15:19:42,677 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 15:24:49,681 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 18:14:30,426 | INFO | voting_app.main | Voting API started.
+2026-10-07 18:14:33,638 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 18:14:39,489 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 18:20:57,955 | INFO | voting_app.main | Voting API started.
+2026-10-07 18:21:02,153 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 18:21:15,549 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 18:32:16,255 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 18:33:04,243 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 18:33:18,770 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:00:49,621 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:01:16,756 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:01:48,007 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 19:01:48,307 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 19:01:50,772 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:02:38,863 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 19:02:39,101 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 19:02:39,110 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:02:41,242 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:02:46,434 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:02:46,449 | INFO | voting_app.src.user.userEndpoints | User account deleted.
+2026-10-07 19:06:32,256 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 19:06:48,421 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 19:06:48,932 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:07:03,065 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:07:07,958 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:07:23,769 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 19:07:26,723 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 19:12:27,741 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:12:44,278 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:46:45,632 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 19:47:16,497 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 19:47:19,066 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 19:47:56,451 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:48:05,336 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:48:09,232 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:48:27,607 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 19:49:16,973 | INFO | voting_app.src.user.userEndpoints | User account deleted.
+2026-10-07 19:50:01,113 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 19:50:32,381 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:51:47,194 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 19:51:59,675 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 19:52:36,145 | INFO | voting_app.src.admin.adminEndpoints | Administrator logged in with MFA.
+2026-10-07 19:52:50,303 | INFO | voting_app.src.admin.adminEndpoints | Administrator token validated.
+2026-10-07 19:52:56,408 | INFO | voting_app.src.admin.adminEndpoints | Administrator account deleted.
+2026-10-07 19:56:42,645 | INFO | voting_app.main | Voting API started.
+2026-10-07 19:59:18,500 | INFO | voting_app.main | Voting API started.
+2026-10-07 20:27:22,036 | INFO | voting_app.main | Voting API started.
+2026-10-07 20:27:23,306 | INFO | voting_app.main | Voting API started.
+2026-10-07 20:27:24,433 | INFO | voting_app.main | Voting API started.
+2026-10-07 20:37:04,081 | INFO | voting_app.main | Root endpoint requested.
+2026-10-07 21:28:15,858 | INFO | voting_app.src.admin.adminEndpoints | Administrator registered.
+2026-10-07 21:28:22,010 | INFO | voting_app.src.admin.adminEndpoints | Administrator MFA code requested.
+2026-10-07 21:28:37,210 | INFO | voting_app.src.admin.adminEndpoints | Administrator logged in with MFA.
+2026-10-07 21:28:42,424 | INFO | voting_app.src.admin.adminEndpoints | Administrator token validated.
+2026-10-07 21:29:44,816 | INFO | voting_app.src.admin.adminEndpoints | Candidate registered.
+2026-10-07 21:32:05,520 | INFO | voting_app.src.admin.adminEndpoints | Administrator account deleted.
+2026-10-07 22:01:12,003 | INFO | voting_app.main | Voting API started.
+2026-10-07 22:01:13,135 | INFO | voting_app.main | Voting API started.
+2026-10-07 22:01:14,186 | INFO | voting_app.main | Voting API started.
+2026-10-07 22:06:22,556 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 22:06:25,875 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 22:06:30,867 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 22:08:03,663 | INFO | voting_app.src.user.userEndpoints | User vote registered.
+2026-10-07 22:08:45,644 | INFO | voting_app.src.user.userEndpoints | User registered.
+2026-10-07 22:08:51,664 | INFO | voting_app.src.user.userEndpoints | User logged in.
+2026-10-07 22:08:58,501 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 22:09:03,599 | INFO | voting_app.src.user.userEndpoints | User token validated.
+2026-10-07 22:09:54,052 | INFO | voting_app.src.user.userEndpoints | User vote registered.
+2026-10-07 22:14:57,280 | INFO | voting_app.src.user.userEndpoints | User registered.

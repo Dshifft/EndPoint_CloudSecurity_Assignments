@@ -1,0 +1,7 @@
+fastapi[all]>=0.141.1,<0.142.0
+passlib[all]>=1.7.4,<2.0.0
+bcrypt>=3.2,<4.1
+python-jose>=3.5.0,<4.0.0
+pydantic-settings>=2.15.0,<3.0.0
+sqlalchemy>=2.1.1,<3.0.0
+psycopg2-binary>=2.9.13,<3.0.0
