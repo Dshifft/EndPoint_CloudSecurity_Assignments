@@ -1,0 +1,35 @@
+services:
+  voting_db_test:
+    image: postgres:18.6
+    container_name: voting_db_test_task_5
+    env_file:
+      - test.env
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pytest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pytest_task_5
+    env_file:
+      - test.env
+    environment:
+      PYTHONPATH: /app
+    command: >
+      sh -c '
+      Time=$$(date +%Y-%m-%d_%H-%M-%S) &&
+      echo "Current Time: $$Time" &&
+      python -c "from utils.db_model import Admin, Candidate, User, Vote; from utils.db import Base, Engine; Base.metadata.create_all(bind=Engine)" &&
+      pytest ./test -v --tb=long --html=./test_reports/report-$$Time.html --junitxml=./test_reports/junit_$$Time.xml --capture=tee-sys --self-contained-html --log-level=ERROR
+      '
+    depends_on:
+      voting_db_test:
+        condition: service_healthy
+    volumes:
+      - "./test_reports:/app/test_reports"
