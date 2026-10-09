@@ -1,0 +1,91 @@
+name: Task 5 Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run tests
+        working-directory: task_5
+        run: make test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Create environment file
+        working-directory: task_5
+        env:
+          USER_JWT_SECRET: ${{ secrets.USER_JWT_SECRET }}
+          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
+          JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }}
+          USER_JWT_EXPIRE_DAYS: ${{ secrets.USER_JWT_EXPIRE_DAYS }}
+          ADMIN_JWT_EXPIRE_DAYS: ${{ secrets.ADMIN_JWT_EXPIRE_DAYS }}
+          MFA_CODE_EXPIRE_MINUTES: ${{ secrets.MFA_CODE_EXPIRE_MINUTES }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+        run: |
+          cat > .env <<EOF
+          USER_JWT_SECRET=$USER_JWT_SECRET
+          ADMIN_JWT_SECRET=$ADMIN_JWT_SECRET
+          JWT_ALGORITHM=$JWT_ALGORITHM
+          USER_JWT_EXPIRE_DAYS=$USER_JWT_EXPIRE_DAYS
+          ADMIN_JWT_EXPIRE_DAYS=$ADMIN_JWT_EXPIRE_DAYS
+          MFA_CODE_EXPIRE_MINUTES=$MFA_CODE_EXPIRE_MINUTES
+          SMTP_HOST=$SMTP_HOST
+          SMTP_PORT=$SMTP_PORT
+          SMTP_USER=$SMTP_USER
+          SMTP_PASSWORD=$SMTP_PASSWORD
+          SMTP_FROM=$SMTP_FROM
+          POSTGRES_DB=$POSTGRES_DB
+          POSTGRES_USER=$POSTGRES_USER
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          POSTGRES_HOST=$POSTGRES_HOST
+          POSTGRES_PORT=$POSTGRES_PORT
+          EOF
+      - name: Configure SSH
+        env:
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+          AZURE_VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s' "$AZURE_VM_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$AZURE_VM_HOST" >> ~/.ssh/known_hosts
+      - name: Copy application
+        working-directory: task_5
+        env:
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+        run: |
+          tar --exclude='.git' --exclude='__pycache__' --exclude='logs' --exclude='test_reports' --exclude='nginx/nginx.crt' --exclude='nginx/nginx.key' -czf - . | ssh "$AZURE_VM_USER@$AZURE_VM_HOST" 'tar -xzf - -C ~/endpoint-cloudsec/task_5'
+      - name: Deploy application
+        env:
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+        run: ssh "$AZURE_VM_USER@$AZURE_VM_HOST" 'cd ~/endpoint-cloudsec/task_5 && docker compose -f docker-compose.production.yml up --build -d --remove-orphans'
+      - name: Check containers
+        env:
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+        run: ssh "$AZURE_VM_USER@$AZURE_VM_HOST" 'cd ~/endpoint-cloudsec/task_5 && docker compose -f docker-compose.production.yml ps'
